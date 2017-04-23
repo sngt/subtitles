@@ -1,0 +1,11 @@
+*~
+.DS_Store
+
+bindata.go
+data/config/app.yaml
+subtitle
+vendor/
+
+.idea/compiler.xml
+.idea/misc.xml
+.idea/workspace.xml
