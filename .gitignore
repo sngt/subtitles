@@ -3,7 +3,7 @@
 
 bindata.go
 data/config/app.yaml
-subtitle
+subtitles
 vendor/
 
 .idea/compiler.xml

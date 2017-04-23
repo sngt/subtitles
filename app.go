@@ -13,8 +13,8 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo"
-	"github.com/sngt/subtitle/controller"
-	"github.com/sngt/subtitle/model"
+	"github.com/sngt/subtitles/controller"
+	"github.com/sngt/subtitles/model"
 )
 
 //go:generate go-bindata -prefix=data ./data/...

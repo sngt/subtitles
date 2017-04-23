@@ -11,7 +11,7 @@ import (
 	"regexp"
 
 	"github.com/labstack/echo"
-	"github.com/sngt/subtitle/model"
+	"github.com/sngt/subtitles/model"
 )
 
 // SrtList srtファイルの一覧を返却する

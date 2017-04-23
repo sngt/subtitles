@@ -1,4 +1,4 @@
-package: github.com/sngt/subtitle
+package: github.com/sngt/subtitles
 import:
 - package: github.com/labstack/echo
   version: ~3.1.0-rc.1
