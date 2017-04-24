@@ -1,5 +1,8 @@
 'use strict';
 
+const LAST_YOUTUBE_VIDEO_ID_KEY = 'last_youtube_video_id';
+const LAST_BROWSED_URL_KEY = 'last_browsed_url';
+
 const Main = () => {
 	switch ((location || window.location).pathname) {
 		case '/youtube':
@@ -33,10 +36,12 @@ class YoutubeMain extends React.Component {
 		event.preventDefault();
 
 		const id = this.refs.videoId.state.id;
-		if (id.match(/[a-zA-Z0-9\\-]+/) === null) {
+		if (id.match(/[a-zA-Z0-9\\-_]+/) === null) {
 			alert(`Incorrect video id : ${id}`);
 			return;
 		}
+
+		localStorage.setItem(LAST_YOUTUBE_VIDEO_ID_KEY, id);
 
 		superagent
 			.get(`http://video.google.com/timedtext?hl=en&lang=en&name=&v=${id}`)
@@ -46,19 +51,23 @@ class YoutubeMain extends React.Component {
 					return;
 				}
 				ReactDOM.render(<YoutubeSubtitle xmlBody={res.text} />, this.refs.result);
+				ReactDOM.render(<FlexibleIFrame url={`https://www.youtube.com/embed/${id}?ecver=2`} ratio={0.8} />, this.refs.browser);
 			});
 	}
 
 	render() {
 		return(
 			<main>
-				<form onSubmit={(e) => this.getSubtitle(e)}>
-					<span>https://www.youtube.com/watch?v=</span>
-					<YoutubeInput ref="videoId" />
-					<button>GET</button>
-				</form>
+				<section className="subtitles">
+					<form onSubmit={(e) => this.getSubtitle(e)}>
+						<span>https://www.youtube.com/watch?v=</span>
+						<YoutubeInput ref="videoId" />
+						<button>GET</button>
+					</form>
 
-				<section ref="result"></section>
+					<article ref="result"></article>
+				</section>
+				<section className="browser" ref="browser"></section>
 			</main>
 		);
 	}
@@ -68,7 +77,7 @@ class YoutubeInput extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.state = {id: ''};
+		this.state = {id: localStorage.getItem(LAST_YOUTUBE_VIDEO_ID_KEY) || ''};
 	}
 
 	edit(event) {
@@ -122,12 +131,17 @@ class SrtMain extends React.Component {
 	render() {
 		return(
 			<main>
-				<form>
-					<SrtSelect ref="file" />
-					<button onClick={(e) => this.getSubtitle(e)}>GET</button>
-				</form>
+				<section className="subtitles">
+					<form>
+						<SrtSelect ref="file" />
+						<button onClick={(e) => this.getSubtitle(e)}>GET</button>
+					</form>
+					<article ref="result"></article>
+				</section>
 
-				<section ref="result"></section>
+				<section className="browser">
+					<InternalBrowser />
+				</section>
 			</main>
 		);
 	}
@@ -200,5 +214,45 @@ class SrtSubtitle extends React.Component {
 }
 
 
+class InternalBrowser extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {url: localStorage.getItem(LAST_BROWSED_URL_KEY) || ''};
+	}
+
+	edit(event) {
+		event.preventDefault();
+		this.setState({url: event.target.value});
+	}
+
+	show(event) {
+		event.preventDefault();
+		localStorage.setItem(LAST_BROWSED_URL_KEY, this.refs.url.value);
+		ReactDOM.render(<FlexibleIFrame url={this.refs.url.value} />, this.refs.content);
+	}
+
+	render() {
+		return (
+			<section>
+				<form onSubmit={(e) => this.show(e)}>
+					<input type="text" ref="url" value={this.state.url} onChange={(e) => this.edit(e)} />
+					<button>SHOW</button>
+				</form>
+				<article ref="content"></article>
+			</section>
+		);
+	}
+}
+
+class FlexibleIFrame extends React.Component {
+	constructor(props) {
+		super(props);
+		this.style = {height: document.documentElement.clientHeight * (props.ratio || 1)};
+	}
+
+	render() {
+		return <iframe src={this.props.url} style={this.style}></iframe>;
+	}
+}
 
 ReactDOM.render(<Main />, document.querySelector('#root'));
