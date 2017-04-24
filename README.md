@@ -22,7 +22,7 @@ make setup build
 
 ### 起動
 ```bash
-./subtitle
+./subtitles
 ```
 
 ## 開発環境
