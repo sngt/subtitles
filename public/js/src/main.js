@@ -1,7 +1,9 @@
 'use strict';
 
 const LAST_YOUTUBE_VIDEO_ID_KEY = 'last_youtube_video_id';
+
 const LAST_BROWSED_URL_KEY = 'last_browsed_url';
+const LAST_OPENED_FILE_BODY_KEY = 'last_opened_file_body';
 
 const Main = () => {
 	switch ((location || window.location).pathname) {
@@ -111,32 +113,16 @@ class YoutubeSubtitle extends React.Component {
 
 
 class SrtMain extends React.Component {
-	getSubtitle (event) {
-		event.preventDefault();
-
-		const dir = this.refs.file.state.dir;
-		const name = this.refs.file.state.name;
-		superagent
-			.get(encodeURI(`/api/srt/content?dir=${dir}&name=${name}`))
-			.end((err, res) => {
-				if (err) {
-					alert(err);
-					return;
-				}
-				console.log(res.body);
-				ReactDOM.render(<SrtSubtitle subtitles={res.body} />, this.refs.result);
-			});
-	}
-
 	render() {
 		return(
 			<main>
 				<section className="subtitles">
 					<form>
 						<SrtSelect ref="file" />
-						<button onClick={(e) => this.getSubtitle(e)}>GET</button>
 					</form>
-					<article ref="result"></article>
+					<article className="result">
+						<SrtSubtitle />
+					</article>
 				</section>
 
 				<section className="browser">
@@ -148,63 +134,52 @@ class SrtMain extends React.Component {
 }
 
 class SrtSelect extends React.Component {
-	constructor(props) {
-		super(props);
-
-		superagent
-			.get('/api/srt/list')
-			.end((err, res) => {
-				if (err) {
-					alert(err);
-					return;
-				}
-
-				if (res.body.length <= 0) {
-					alert('There is no SRT file.');
-					return;
-				}
-
-				const defaultFile = res.body[0];
-				this.setState({
-					files: res.body,
-					path: `${defaultFile.dir}/${defaultFile.name}`,
-					dir: defaultFile.dir,
-					name: defaultFile.name
-				});
-			});
-
-		this.state = {files: [], path:'', dir: '', name: ''};
-	}
-
 	select(event) {
 		event.preventDefault();
-		this.setState({
-			path: event.target.value,
-			dir: event.target.dir,
-			name: event.target.name
-		});
+		if (event.target.files.length <= 0) {
+			return;
+		}
+
+		const data = event.target.files[0];
+		if (data.name.match(/.srt$/) === null) {
+			alert('The file must end with .srt.');
+			event.target.value = '';
+			return;
+		}
+
+		const reader = new FileReader();
+		reader.onload = (event) => {
+			const content = event.target.result.replace(/\r\n/g, '\n').replace(/\r/, '\n');
+			const bodies = content.split('\n\n').map((block) => {
+				return block.replace(/^[^\n]+\n[^\n]+\n/, '');
+			});
+			ReactDOM.render(<SrtSubtitle subtitles={bodies} />, document.querySelector('.subtitles .result'));
+
+		};
+		reader.readAsText(data);
 	}
 
 	render() {
 		return (
-			<select onChange={(e) => this.select(e)} value={this.state.path}>
-				{this.state.files.map((file) => {
-					const path = `${file.dir}/${file.name}`
-					return <option key={path} dir={file.dir} name={file.name}>{path}</option>;
-				})}
-			</select>
+			<input type="file" onChange={(e) => this.select(e)} />
 		);
 	}
 }
 
 class SrtSubtitle extends React.Component {
 	render() {
+		if (this.props.subtitles) {
+			localStorage.setItem(LAST_OPENED_FILE_BODY_KEY, JSON.stringify(this.props.subtitles));
+		} else {
+			this.props.subtitles = JSON.parse(localStorage.getItem(LAST_OPENED_FILE_BODY_KEY)) || [];
+		}
+
 		return (
 			<ol>
-				{this.props.subtitles.map((block) => {
+				{this.props.subtitles.map((body, index) => {
 					return (
-						<li key={block.number}>
-							{block.text.split('\n').map((line, index) => <p key={index}>{line}</p>)}
+						<li key={index}>
+							{body.split('\n').map((line, index) => <p key={index}>{line}</p>)}
 						</li>
 					)
 				})}

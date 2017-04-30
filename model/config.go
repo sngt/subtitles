@@ -6,8 +6,7 @@ import "github.com/go-yaml/yaml"
 var AppConfig = config{}
 
 type config struct {
-	Port       int    `yaml:"port"`
-	SrtDirPath string `yaml:"srt-path"`
+	Port int `yaml:"port"`
 }
 
 // InitAppConfig アプリケーション設定を、設定ファイルデータで初期化する

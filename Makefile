@@ -18,7 +18,7 @@ setup:
 	go get github.com/jteeuwen/go-bindata
 	go get github.com/Songmu/make2help/cmd/make2help
 	glide update
-	if [ ! -e ./data/config/app.yaml ]; then echo "port: 9999\nsrt-path: ${HOME}/srt" > ./data/config/app.yaml; fi
+	if [ ! -e ./data/config/app.yaml ]; then echo "port: 9999\n" > ./data/config/app.yaml; fi
 
 ## ビルド準備
 pre-build:

@@ -13,7 +13,6 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo"
-	"github.com/sngt/subtitles/controller"
 	"github.com/sngt/subtitles/model"
 )
 
@@ -30,9 +29,6 @@ func main() {
 			Timestamp int64
 		}{Env: os.Getenv("APP_ENV"), Timestamp: time.Now().UnixNano()})
 	})
-
-	e.GET("/api/srt/list", controller.SrtList)
-	e.GET("/api/srt/content", controller.SrtContent)
 
 	e.Static("/js", "public/js")
 	e.Static("/css", "public/css")
